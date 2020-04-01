@@ -2,12 +2,13 @@
 
 ## Part1
 ```bash
-  javascript
+  javascript(curriculum)
   unicafe
   anecdotes
  ```
 ## Part2
 ```bash
+  curriculum
   phonebook
   countries
  ```
