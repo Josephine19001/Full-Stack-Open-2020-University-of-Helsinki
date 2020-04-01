@@ -1,10 +1,13 @@
 # Full-Stack-Open-2020-University-of-Helsinki
 
-part0
-part1
+## Part1
+```bash
   javascript
   unicafe
   anecdotes
-part2
+ ```
+## Part2
+```bash
   phonebook
   countries
+ ```
