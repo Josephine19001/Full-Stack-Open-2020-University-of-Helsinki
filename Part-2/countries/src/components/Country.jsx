@@ -1,6 +1,6 @@
-import React from 'react'
+import React from "react";
 
-export default function CountryComponent({country}) {
+export default function Country({ country }) {
   return (
     <div>
       <h2>{country.name}</h2>
@@ -9,12 +9,13 @@ export default function CountryComponent({country}) {
 
       <div>
         <h3>languages</h3>
-        <ul>
-          {country.languages.map((lang) => {
-            // console.log('lang', lang)
-            <li>{lang.nativeName}</li>;
-          })}
-        </ul>
+        <div>
+          <ul>
+            {country.languages.map((lang) => {
+             return <li>{lang.name}</li>;
+            })}
+          </ul>
+        </div>
       </div>
       <div>
         <img style={{ width: "50%" }} src={country.flag} />
