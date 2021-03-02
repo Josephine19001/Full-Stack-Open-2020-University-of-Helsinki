@@ -9,12 +9,10 @@ function App() {
   const [countries, setCountries] = useState([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState([]);
-  const [isShow, setIsShow] = useState(false);
-  const [weatherData, setWeatherData] = useState([]);
 
   let city = "Helsinki";
   const countryBaseURL = "https://restcountries.eu/rest/v2/all";
-  const weatherBaseURL = `http://api.weatherstack.com/current?access_key=${keys.weatherApiKey}&query=${city}`;
+ 
 
   const handleQueryChange = (event) => {
     setQuery(event.target.value);
@@ -26,13 +24,6 @@ function App() {
     setFilter([...filteredCountries]);
   };
 
-
-  const handleShow = (event) => {
-    event.preventDefault();
-
-    setIsShow(true);
-  };
-
   useEffect(() => {
     const fetchCountriesData = () => {
       axios
@@ -40,13 +31,7 @@ function App() {
         .then((response) => setCountries([...response.data]));
         
     };
-    // const fetchWeatherData = () => {
-    //   axios
-    //     .get(weatherBaseURL)
-    //     .then((response) => setWeatherData([...response.data]));
-    // };
     fetchCountriesData();
-    // fetchWeatherData();
   }, []);
 
   return (
@@ -61,11 +46,8 @@ function App() {
           filter.map((country) => {
             return (
               <div>
-                {country.name} <button onClick={handleShow}>show</button>
-                {isShow === true ? <Country country={country} /> : null}
-                {weatherData.map((current) => {
-                  return <Weather city={country.capital} current={current} />;
-                })}
+                {country.name}
+                <Country country={country} />
               </div>
             );
           })
