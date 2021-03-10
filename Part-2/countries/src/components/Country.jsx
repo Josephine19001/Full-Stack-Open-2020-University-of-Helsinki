@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 import Weather from './Weather';
-import keys from "../keys";
 
 export default function Country({ country }) {
   const [isShow, setIsShow] = useState(false);
   const [weatherData, setWeatherData] = useState([]);
 
-  const weatherBaseURL = `http://api.openweathermap.org/data/2.5/weather?q=${country.capital}&appid=${keys.openWeatherApiKey}`;
+  const api_key = process.env.REACT_APP_OPEN_WEATHER_API
+
+  const weatherBaseURL = `http://api.openweathermap.org/data/2.5/weather?q=${country.capital}&appid=${api_key}`;
 
   const handleShow = (event,country) => {
     event.preventDefault();
