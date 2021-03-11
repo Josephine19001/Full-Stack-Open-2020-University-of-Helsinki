@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 
 import Phonebook from "./components/Phonebook";
 import Filter from "./components/Filter";
+import personServices from "./services/phonebook";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -10,58 +10,61 @@ const App = () => {
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
   const [showAll, setShowAll] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    personServices.getAllPersons().then((data) => setPersons(data));
+  }, []);
 
   const addPerson = (event) => {
     event.preventDefault();
 
-    const personObject = {
+    const newPerson = {
       name: newName,
       number: newNumber,
       id: persons.length + 1,
     };
-    //Checking for duplicate names
-    for (let person of persons) {
-      if (person.name === newName) {
-        alert(`${newName} is already added to phonebook`);
-      } else {
-        setPersons(persons.concat(personObject));
-        setNewName("");
-        setNewNumber("");
+    if (persons.length !== 0) {
+      
+      // Checking for duplicate names
+      for (let person of persons) {
+        const updatedPerson = {
+          number: newNumber
+        };
+        if (person.name === newPerson.name) {
+          alert(`${newPerson.name} is already added to phonebook`);
+        }
+        if (person.number === newPerson.number) {
+          const result = window.confirm(`${newPerson.name} is already added to phonebook. Do you want to replace the old number with a new one?`);
+          if(result) {
+            personServices.updateNumber(person.id, updatedPerson).then((returnedObj) => {
+              console.log('success', returnedObj)
+            });
+          }
+        }
       }
-      console.log(setPersons);
     }
+    personServices.create(newPerson).then((returnedObj) => {
+      setPersons(persons.concat(returnedObj));
+      setNewName("");
+      setNewNumber("");
+    });
   };
 
   const handleNameChange = (event) => {
     const { value } = event.target;
-
-    console.log(value);
     setNewName(value);
   };
 
   const handleNumberChange = (event) => {
     const { value } = event.target;
-
-    console.log(value);
     setNewNumber(value);
   };
 
   const handleFilter = (event) => {
     setFilter(event.target.value);
-    const searchedContact = showAll
-      ? persons.filter(
-          (person) =>
-            person.name.toLowerCase().includes(filter.toLowerCase()) === true
-        )
-      : persons;
-    setShowAll([...searchedContact]);
   };
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:3001/persons")
-      .then((response) => setPersons([...response.data]));
-  }, []);
   return (
     <div>
       <h2>Phonebook</h2>
@@ -80,9 +83,24 @@ const App = () => {
       </form>
       <h2>Numbers</h2>
       <ul>
-        {showAll?.map((person, i) => (
-          <Phonebook key={i} name={person.name} number={person.number} />
-        ))}
+        {persons?.filter(
+            (person) =>
+              person?.name.toLowerCase().includes(filter?.toLowerCase()) === true
+          )
+          .map((person, i) => (
+            <div style={{ display: "flex" }}>
+              <Phonebook key={i} name={person.name} number={person.number} />
+              <button
+                onClick={() => {
+                  personServices
+                    .deleteNumber(person.id, person)
+                    .then((res) => setPersons(persons.filter(p => p.id != person.id)));
+                }}
+              >
+                delete
+              </button>
+            </div>
+          ))}
       </ul>
     </div>
   );
