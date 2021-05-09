@@ -1,4 +1,5 @@
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 
 let persons = [
@@ -27,6 +28,16 @@ let persons = [
 const baseURL = "/api/persons";
 
 app.use(express.json())
+
+morgan.token('host', function(request, response) {
+    return request.hostname;
+})
+
+morgan.token('body', function(request, response) {
+    return JSON.stringify(request.body)
+})
+
+app.use(morgan(':method :host :status :res[content-length] - :response-time ms'))
 
 app.get(baseURL, (request, response) => {
   response.json(persons);
