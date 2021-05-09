@@ -26,19 +26,25 @@ let persons = [
 
 const baseURL = "/api/persons";
 
+app.use(express.json())
+
 app.get(baseURL, (request, response) => {
   response.json(persons);
 });
 
 app.post(baseURL, (request, response) => {
   const body = request.body;
-  console.log(body)
   if (!body.number || !body.name) {
     return response.status(400).json({
       error: "body missing either name or number",
     });
   }
-  console.log(request.body);
+  const isNameExisting = persons.some(person => person.name === body.name);
+  if(isNameExisting){
+    return response.status(400).json({
+        error: 'name must be unique',
+      });
+  }
   const newId = generateId();
   const newPerson = {
     id: newId,
@@ -46,7 +52,7 @@ app.post(baseURL, (request, response) => {
     number: body.number,
   };
   persons = persons.concat(newPerson);
-  response.status(204).send(persons);
+  response.json(persons);
 });
 
 app.get("/info", (resquest, response) => {
@@ -101,3 +107,7 @@ const generateId = () => {
 
   return maxId;
 };
+
+// const isNameExisting = (newName) => {
+//     return persons?.some(person => person.name === newName)
+// }
