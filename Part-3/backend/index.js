@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+const cors = require("cors")
 const app = express();
 
 let persons = [
@@ -28,6 +29,8 @@ let persons = [
 const baseURL = "/api/persons";
 
 app.use(express.json())
+
+app.use(cors());
 
 morgan.token('host', function(request, response) {
     return request.hostname;
