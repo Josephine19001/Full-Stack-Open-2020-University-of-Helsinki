@@ -6,12 +6,8 @@ import personServices from "./services/phonebook";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
-  const [ person, setPerson ] = useState({ name: "", number: "" });
+  const [person, setPerson] = useState({ name: "", number: "" });
   const [filter, setFilter] = useState("");
-
-  useEffect(() => {
-    personServices.getAllPersons().then((data) => setPersons(data));
-  }, []);
 
   const addPerson = (event) => {
     event.preventDefault();
@@ -21,21 +17,21 @@ const App = () => {
       for (let p of persons) {
         if (p.name === person.name) {
           alert(`${person.name} is already added to phonebook`);
-        }
-        if (p.number !== person.number) {
-          const result = window.confirm(
-            `${person.name} is already added to phonebook. Do you want to replace the old number with a new one?`
-          );
-          if (result === true) {
-            personServices.updateNumber(person).then((returnedObj) => {
-              console.log("success", returnedObj);
-            });
+
+          if (p.number !== person.number) {
+            const result = window.confirm(
+              `${person.name} is already added to phonebook. Do you want to replace the old number with a new one?`
+            );
+            if (result) {
+              personServices.updateNumber(person).then((returnedObj) => {
+                console.log("success", returnedObj);
+              });
+            }
           }
         }
       }
     }
-    personServices.create(person).then((returnedObj) => {
-      setPersons(persons.concat(returnedObj));
+    personServices.create(person).then(() => {
       setPerson({
         name: "",
         number: "",
@@ -51,6 +47,14 @@ const App = () => {
   const handleFilter = (event) => {
     setFilter(event.target.value);
   };
+
+  const fetchData = () => {
+    return personServices.getAllPersons().then((data) => setPersons([...data]));
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <div>
@@ -85,16 +89,12 @@ const App = () => {
             (ps) =>
               ps?.name.toLowerCase().includes(filter?.toLowerCase()) === true
           )
-          .map((ps, i) => (
+          .map((ps) => (
             <div style={{ display: "flex" }}>
-              <Phonebook key={i} name={ps.name} number={ps.number} />
+              <Phonebook key={ps.id} name={ps.name} number={ps.number} />
               <button
                 onClick={() => {
-                  personServices
-                    .deleteNumber(ps.id, ps)
-                    .then((res) =>
-                      setPersons(ps.filter((p) => p.id !== ps.id))
-                    );
+                  personServices.deleteNumber(ps.id);
                 }}
               >
                 delete

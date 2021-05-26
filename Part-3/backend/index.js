@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
-const cors = require("cors")
+const cors = require("cors");
+const bodyParser = require("body-parser");
 const app = express();
 
 let persons = [
@@ -28,7 +29,7 @@ let persons = [
 
 const baseURL = "/api/persons";
 
-app.use(express.json())
+app.use(bodyParser.json())
 
 app.use(cors());
 
@@ -41,10 +42,6 @@ morgan.token('body', function(request, response) {
 })
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
-
-app.get(baseURL, (request, response) => {
-  response.json(persons);
-});
 
 app.post(baseURL, (request, response) => {
   const body = request.body;
@@ -87,6 +84,10 @@ app.get(`${baseURL}/:id`, (request, response) => {
   response.status(200).send(foundPerson);
 });
 
+app.get(baseURL, (request, response) => {
+  response.json(persons);
+});
+
 
 app.delete(`${baseURL}/:id`, (request, response) => {
   const id = parseInt(request.params.id, 10);
@@ -123,7 +124,3 @@ const generateId = () => {
 
   return maxId;
 };
-
-// const isNameExisting = (newName) => {
-//     return persons?.some(person => person.name === newName)
-// }

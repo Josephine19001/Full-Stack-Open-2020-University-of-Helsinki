@@ -26,8 +26,8 @@ const create = (newPerson) => {
   }
 }
 
-const deleteNumber = (id, data) => {
-    return axios.delete(`${baseURL}/${id}`, data).then(response => console.log('Sucessfully deleted'))
+const deleteNumber = (id) => {
+    return axios.delete(`${baseURL}/${id}`).then(response => console.log('Sucessfully deleted'))
 }
 const updateNumber = (updated) => {
     const request = axios.put(`${baseURL}`, updated)
