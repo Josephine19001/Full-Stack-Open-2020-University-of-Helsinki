@@ -40,7 +40,7 @@ morgan.token('body', function(request, response) {
     return JSON.stringify(request.body)
 })
 
-app.use(morgan(':method :host :status :res[content-length] - :response-time ms'))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
 
 app.get(baseURL, (request, response) => {
   response.json(persons);
@@ -69,10 +69,11 @@ app.post(baseURL, (request, response) => {
   response.json(persons);
 });
 
-app.get("/info", (resquest, response) => {
-  const date = new Date();
-  const html = `<!DOCTYPE htm>\n<html>\n<body>\n<h3>Phonebook has info for 4 people</h3>\n<h3>${date}</h3></body></html>`;
-  response.status(200).send(html);
+app.put(`${baseURL}`, (request, response) => {
+  const body = request.body;
+  const foundIndex = persons.findIndex(person => person.name == body.name);
+  persons[foundIndex].number = body.number;
+  response.json(persons);
 });
 
 app.get(`${baseURL}/:id`, (request, response) => {
@@ -85,6 +86,7 @@ app.get(`${baseURL}/:id`, (request, response) => {
   const foundPerson = findPerson(id);
   response.status(200).send(foundPerson);
 });
+
 
 app.delete(`${baseURL}/:id`, (request, response) => {
   const id = parseInt(request.params.id, 10);
@@ -117,7 +119,7 @@ const findPersonAndDelete = (id) => {
 
 const generateId = () => {
   const maxId =
-    persons.length > 0 ? Math.max(...persons.map((person) => person.id)) : 0;
+  persons.length > 0 ? Math.max(...persons?.map((person) => person.id))+1 : 0;
 
   return maxId;
 };
