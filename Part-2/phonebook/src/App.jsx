@@ -6,11 +6,8 @@ import personServices from "./services/phonebook";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
-  const [newName, setNewName] = useState("");
-  const [newNumber, setNewNumber] = useState("");
+  const [ person, setPerson ] = useState({ name: "", number: "" });
   const [filter, setFilter] = useState("");
-  const [showAll, setShowAll] = useState([]);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     personServices.getAllPersons().then((data) => setPersons(data));
@@ -19,46 +16,36 @@ const App = () => {
   const addPerson = (event) => {
     event.preventDefault();
 
-    const newPerson = {
-      name: newName,
-      number: newNumber,
-      id: persons.length + 1,
-    };
     if (persons.length !== 0) {
-      
       // Checking for duplicate names
-      for (let person of persons) {
-        const updatedPerson = {
-          number: newNumber
-        };
-        if (person.name === newPerson.name) {
-          alert(`${newPerson.name} is already added to phonebook`);
+      for (let p of persons) {
+        if (p.name === person.name) {
+          alert(`${person.name} is already added to phonebook`);
         }
-        if (person.number === newPerson.number) {
-          const result = window.confirm(`${newPerson.name} is already added to phonebook. Do you want to replace the old number with a new one?`);
-          if(result) {
-            personServices.updateNumber(person.id, updatedPerson).then((returnedObj) => {
-              console.log('success', returnedObj)
+        if (p.number !== person.number) {
+          const result = window.confirm(
+            `${person.name} is already added to phonebook. Do you want to replace the old number with a new one?`
+          );
+          if (result === true) {
+            personServices.updateNumber(person).then((returnedObj) => {
+              console.log("success", returnedObj);
             });
           }
         }
       }
     }
-    personServices.create(newPerson).then((returnedObj) => {
+    personServices.create(person).then((returnedObj) => {
       setPersons(persons.concat(returnedObj));
-      setNewName("");
-      setNewNumber("");
+      setPerson({
+        name: "",
+        number: "",
+      });
     });
   };
 
-  const handleNameChange = (event) => {
-    const { value } = event.target;
-    setNewName(value);
-  };
-
-  const handleNumberChange = (event) => {
-    const { value } = event.target;
-    setNewNumber(value);
+  const handlePersonChange = (event) => {
+    const { name, value } = event.target;
+    setPerson({ ...person, [name]: value });
   };
 
   const handleFilter = (event) => {
@@ -73,28 +60,41 @@ const App = () => {
       <form onSubmit={addPerson}>
         <div>
           name :
-          <input value={newName} onChange={handleNameChange} />
+          <input
+            value={person.name}
+            name="name"
+            type="text"
+            onChange={handlePersonChange}
+          />
         </div>
         <div>
           number :
-          <input value={newNumber} onChange={handleNumberChange} />
+          <input
+            value={person.number}
+            name="number"
+            type="text"
+            onChange={handlePersonChange}
+          />
         </div>
         <button type="submit">add</button>
       </form>
       <h2>Numbers</h2>
       <ul>
-        {persons?.filter(
-            (person) =>
-              person?.name.toLowerCase().includes(filter?.toLowerCase()) === true
+        {persons
+          ?.filter(
+            (ps) =>
+              ps?.name.toLowerCase().includes(filter?.toLowerCase()) === true
           )
-          .map((person, i) => (
+          .map((ps, i) => (
             <div style={{ display: "flex" }}>
-              <Phonebook key={i} name={person.name} number={person.number} />
+              <Phonebook key={i} name={ps.name} number={ps.number} />
               <button
                 onClick={() => {
                   personServices
-                    .deleteNumber(person.id, person)
-                    .then((res) => setPersons(persons.filter(p => p.id != person.id)));
+                    .deleteNumber(ps.id, ps)
+                    .then((res) =>
+                      setPersons(ps.filter((p) => p.id !== ps.id))
+                    );
                 }}
               >
                 delete
