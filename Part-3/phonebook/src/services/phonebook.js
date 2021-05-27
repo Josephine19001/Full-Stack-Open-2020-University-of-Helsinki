@@ -20,8 +20,8 @@ const create = (newPerson) => {
 const deleteNumber = (id) => {
     return axios.delete(`${baseURL}/${id}`).then(response => console.log('Sucessfully deleted'))
 }
-const updateNumber = (updated) => {
-    const request = axios.put(`${baseURL}`, updated)
+const updateNumber = (id, updated) => {
+    const request = axios.put(`${baseURL}/${id}`, updated)
     return request.then(response => response.data)
 }
 
