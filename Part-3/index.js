@@ -54,11 +54,7 @@ app.use(
 
 app.post(baseURL, (request, response, next) => {
   const { name, number } = request.body;
-  if (!number || !name) {
-    return response.status(400).json({
-      error: "body missing either name or number",
-    });
-  }
+ 
   const newPerson = new Phone({
     name: name,
     number: number,
@@ -74,7 +70,7 @@ app.post(baseURL, (request, response, next) => {
     });
 });
 
-app.get(baseURL, (request, response) => {
+app.get(baseURL, (request, response, next) => {
   Phone.find({})
     .then((persons) => {
       response.json(persons);
@@ -84,7 +80,7 @@ app.get(baseURL, (request, response) => {
     });
 });
 
-app.put(`${baseURL}/:id`, (request, response) => {
+app.put(`${baseURL}/:id`, (request, response, next) => {
   const { name, number } = request.body;
   const id = request.params.id;
 
@@ -102,7 +98,7 @@ app.put(`${baseURL}/:id`, (request, response) => {
     });
 });
 
-app.get(`${baseURL}/:id`, (request, response) => {
+app.get(`${baseURL}/:id`, (request, response, next) => {
   const id = request.params.id;
   Phone.findById(id)
     .then((person) => {
@@ -121,7 +117,7 @@ app.get(`${baseURL}/:id`, (request, response) => {
     });
 });
 
-app.delete(`${baseURL}/:id`, (request, response) => {
+app.delete(`${baseURL}/:id`, (request, response, next) => {
   const id = request.params.id;
   Phone.findByIdAndRemove(id)
     .then((result) => {
@@ -135,7 +131,7 @@ app.delete(`${baseURL}/:id`, (request, response) => {
     });
 });
 
-const unknownEndpoint = (request, response) => {
+const unknownEndpoint = (request, response, next) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
 
@@ -147,6 +143,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });
+  }else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
   }
 
   next(error);
