@@ -41,6 +41,8 @@ const App = () => {
                   isSuccess: true,
                   message: `Successfully updated ${returnedObj.name}`,
                 });
+              }).catch((error) => {
+                setError({ ...error, isError: true, message: error.message });
               });
             }
           }
@@ -57,6 +59,8 @@ const App = () => {
         name: "",
         number: "",
       });
+    }).catch((error) => {
+      setError({ ...error, isError: true, message: error.message });
     });
   };
 
@@ -97,8 +101,20 @@ const App = () => {
     };
 
     fetchData();
-  }, [success.message, person]);
+  }, [person]);
 
+useEffect(() => {
+  window.addEventListener("click",() => {
+    setError({
+      ...error,
+      isError: false
+    })
+    setSuccess({
+      ...error,
+      isSuccess: false
+    })
+  })
+}, [success, error])
   return (
     <div>
       <h2>Phonebook</h2>
