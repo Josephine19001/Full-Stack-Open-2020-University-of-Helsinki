@@ -35,29 +35,28 @@ const App = () => {
               `${person.name} is already added to phonebook. Do you want to replace the old number with a new one?`
             );
             if (result) {
-              personServices.updateNumber(person).then((returnedObj) => {
-                console.log("success", returnedObj);
-              });
-              setSuccess({
-                ...success,
-                isSuccess: true,
-                message: `Successfully updated ${person.name}`,
+              personServices.updateNumber(p.id, person).then((returnedObj) => {
+                setSuccess({
+                  ...success,
+                  isSuccess: true,
+                  message: `Successfully updated ${returnedObj.name}`,
+                });
               });
             }
           }
         }
       }
     }
-    personServices.create(person).then(() => {
+    personServices.create(person).then((p) => {
+      setSuccess({
+        ...success,
+        isSuccess: true,
+        message: `Successfully added ${p.name}`,
+      });
       setPerson({
         name: "",
         number: "",
       });
-    });
-    setSuccess({
-      ...success,
-      isSuccess: true,
-      message: `Successfully added ${person.name}`,
     });
   };
 
@@ -85,18 +84,20 @@ const App = () => {
       });
   };
 
-  const fetchData = () => {
-    return personServices
-      .getAllPersons()
-      .then((data) => setPersons([...data]))
-      .catch((error) => {
-        setError({ ...error, isError: true, message: error.message });
-      });
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      const result = await personServices
+        .getAllPersons()
+        .then((data) => data)
+        .catch((error) => {
+          setError({ ...error, isError: true, message: error.message });
+        });
+
+      setPersons(result);
+    };
+
     fetchData();
-  }, []);
+  }, [success.message, person]);
 
   return (
     <div>
