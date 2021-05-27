@@ -7,15 +7,6 @@ const getAllPersons = () => {
   return request.then((response) => response.data);
 };
 
-const getAllPersons2 = () => {
-  const request = axios.get(baseURL);
-  const nonExisting = {
-    id: 10000,
-    name: "Unknown name",
-    number: "123456789",
-  };
-  return request.then((response) => response.data.concat(nonExisting));
-};
 
 const create = (newPerson) => {
   try{
@@ -35,4 +26,4 @@ const updateNumber = (updated) => {
 }
 
 // const request = axios.post(`${baseURL}/${}`)
-export default { getAllPersons, getAllPersons2, create, deleteNumber, updateNumber };
+export default { getAllPersons, create, deleteNumber, updateNumber };
