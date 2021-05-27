@@ -3,11 +3,23 @@ import React, { useState, useEffect } from "react";
 import Phonebook from "./components/Phonebook";
 import Filter from "./components/Filter";
 import personServices from "./services/phonebook";
+import {
+  ErrorNotification,
+  SuccessNotification,
+} from "./components/Notification";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [person, setPerson] = useState({ name: "", number: "" });
   const [filter, setFilter] = useState("");
+  const [error, setError] = useState({
+    isError: false,
+    message: "",
+  });
+  const [success, setSuccess] = useState({
+    isSuccess: false,
+    message: "",
+  });
 
   const addPerson = (event) => {
     event.preventDefault();
@@ -26,6 +38,11 @@ const App = () => {
               personServices.updateNumber(person).then((returnedObj) => {
                 console.log("success", returnedObj);
               });
+              setSuccess({
+                ...success,
+                isSuccess: true,
+                message: `Successfully updated ${person.name}`,
+              });
             }
           }
         }
@@ -36,6 +53,11 @@ const App = () => {
         name: "",
         number: "",
       });
+    });
+    setSuccess({
+      ...success,
+      isSuccess: true,
+      message: `Successfully added ${person.name}`,
     });
   };
 
@@ -48,9 +70,29 @@ const App = () => {
     setFilter(event.target.value);
   };
 
+  const handleDeletePerson = (person) => {
+    personServices
+      .deleteNumber(person.id)
+      .then(() => {
+        setSuccess({
+          ...success,
+          isSuccess: true,
+          message: `Successfully deleted ${person.name}`,
+        });
+      })
+      .catch((error) => {
+        setError({ ...error, isError: true, message: error.message });
+      });
+  };
+
   const fetchData = () => {
-    return personServices.getAllPersons().then((data) => setPersons([...data]));
-  }
+    return personServices
+      .getAllPersons()
+      .then((data) => setPersons([...data]))
+      .catch((error) => {
+        setError({ ...error, isError: true, message: error.message });
+      });
+  };
 
   useEffect(() => {
     fetchData();
@@ -59,6 +101,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      {error.isError && <ErrorNotification message={error.message} />}
+      {success.isSuccess && <SuccessNotification message={success.message} />}
       <Filter handler={handleFilter} />
       <br />
       <form onSubmit={addPerson}>
@@ -90,11 +134,11 @@ const App = () => {
               ps?.name.toLowerCase().includes(filter?.toLowerCase()) === true
           )
           .map((ps) => (
-            <div style={{ display: "flex" }}>
-              <Phonebook key={ps.id} name={ps.name} number={ps.number} />
+            <div style={{ display: "flex" }} key={ps.id}>
+              <Phonebook name={ps.name} number={ps.number} />
               <button
                 onClick={() => {
-                  personServices.deleteNumber(ps.id);
+                  handleDeletePerson(ps);
                 }}
               >
                 delete
