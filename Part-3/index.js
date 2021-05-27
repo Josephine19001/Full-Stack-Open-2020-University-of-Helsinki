@@ -93,8 +93,7 @@ app.put(`${baseURL}/:id`, (request, response) => {
     number,
   };
 
-  Phone.findByIdAndUpdate(id, updatePerson, { new: true })
-    .exec()
+  Phone.findByIdAndUpdate(id, updatePerson, { new: false })
     .then((updatedPerson) => {
       response.status(200).json(updatedPerson);
     })
