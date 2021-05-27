@@ -1,106 +1,31 @@
+require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 const app = express();
+const requestLogger = require("request-logger");
+const mongoose = require("mongoose");
 
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "010-123456",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "080-129456",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendick",
-    number: "090-123456",
-  },
-];
+const url = process.env.MONGODB_URI;
 
-const baseURL = "/api/persons";
+console.log("connecting to", url);
 
-app.use(bodyParser.json())
+mongoose
+  .connect(url, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+    useCreateIndex: true,
+  })
+  .then((result) => {
+    console.log("connected to MongoDB");
+  })
+  .catch((error) => {
+    console.log("error connecting to MongoDB", error.message);
+  });
 
-app.use(cors());
-
-morgan.token('host', function(request, response) {
-    return request.hostname;
-})
-
-morgan.token('body', function(request, response) {
-    return JSON.stringify(request.body)
-})
-
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
-
-app.post(baseURL, (request, response) => {
-  const body = request.body;
-  if (!body.number || !body.name) {
-    return response.status(400).json({
-      error: "body missing either name or number",
-    });
-  }
-  const isNameExisting = persons.some(person => person.name === body.name);
-  if(isNameExisting){
-    return response.status(400).json({
-        error: 'name must be unique',
-      });
-  }
-  const newId = generateId();
-  const newPerson = {
-    id: newId,
-    name: body.name,
-    number: body.number,
-  };
-  persons = persons.concat(newPerson);
-  response.json(persons);
-});
-
-app.put(`${baseURL}`, (request, response) => {
-  const body = request.body;
-  const foundIndex = persons.findIndex(person => person.name == body.name);
-  persons[foundIndex].number = body.number;
-  response.json(persons);
-});
-
-app.get(`${baseURL}/:id`, (request, response) => {
-  const id = parseInt(request.params.id, 10);
-  if (!id) {
-    return response.status(404).json({
-      error: `Person with ${id} was not found`,
-    });
-  }
-  const foundPerson = findPerson(id);
-  response.status(200).send(foundPerson);
-});
-
-app.get(baseURL, (request, response) => {
-  response.json(persons);
-});
-
-
-app.delete(`${baseURL}/:id`, (request, response) => {
-  const id = parseInt(request.params.id, 10);
-  if (!id) {
-    return response.status(404).json({
-      error: `Person with ${id} was not found`,
-    });
-  }
-  persons = findPersonAndDelete(id);
-  response.status(204).end();
-});
-
-const PORT = 3001;
+// Express configuration
+const PORT = process.env.PORT;
 app.listen(PORT, (error) => {
   if (error) {
     console.log("Something went wrong with server");
@@ -108,19 +33,125 @@ app.listen(PORT, (error) => {
   console.log(`Server running on port ${PORT}`);
 });
 
-const findPerson = (id) => {
-  const person = persons.filter((person) => person.id === id);
-  return person;
+const Phone = require("./models/phonebook");
+
+const baseURL = "/api/persons";
+
+app.use(express.json());
+app.use(cors());
+
+morgan.token("host", function (request, response) {
+  return request.hostname;
+});
+
+morgan.token("body", function (request, response) {
+  return JSON.stringify(request.body);
+});
+
+app.use(
+  morgan(":method :url :status :res[content-length] - :response-time ms")
+);
+
+app.post(baseURL, (request, response, next) => {
+  const { name, number } = request.body;
+  if (!number || !name) {
+    return response.status(400).json({
+      error: "body missing either name or number",
+    });
+  }
+  const newPerson = new Phone({
+    name: name,
+    number: number,
+  });
+
+  newPerson
+    .save()
+    .then((savedPerson) => {
+      response.json(savedPerson);
+    })
+    .catch((error) => {
+      next(error);
+    });
+});
+
+app.get(baseURL, (request, response) => {
+  Phone.find({})
+    .then((persons) => {
+      response.json(persons);
+    })
+    .catch((error) => {
+      next(error);
+    });
+});
+
+app.put(`${baseURL}/:id`, (request, response) => {
+  const { name, number } = request.body;
+  const id = request.params.id;
+
+  const updatePerson = {
+    name,
+    number,
+  };
+
+  Phone.findByIdAndUpdate(id, updatePerson, { new: true })
+    .exec()
+    .then((updatedPerson) => {
+      response.status(200).json(updatedPerson);
+    })
+    .catch((error) => {
+      next(error);
+    });
+});
+
+app.get(`${baseURL}/:id`, (request, response) => {
+  const id = request.params.id;
+  Phone.findById(id)
+    .then((person) => {
+      if (!person) {
+        response
+          .status(404)
+          .json({
+            error: `Person with ${id} was not found`,
+          })
+          .end();
+      }
+      response.status(200).send(person);
+    })
+    .catch((error) => {
+      next(error);
+    });
+});
+
+app.delete(`${baseURL}/:id`, (request, response) => {
+  const id = request.params.id;
+  Phone.findByIdAndRemove(id)
+    .then((result) => {
+      response
+        .status(204)
+        .json(`Successfully delete person with id:${id}`)
+        .end();
+    })
+    .catch((error) => {
+      next(error);
+    });
+});
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
 };
 
-const findPersonAndDelete = (id) => {
-  persons = persons.filter((person) => person.id !== id);
-  return persons;
+// handler of requests with unknown endpoint
+app.use(unknownEndpoint);
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  }
+
+  next(error);
 };
 
-const generateId = () => {
-  const maxId =
-  persons.length > 0 ? Math.max(...persons?.map((person) => person.id))+1 : 0;
-
-  return maxId;
-};
+// this has to be the last loaded middleware.
+app.use(errorHandler);
