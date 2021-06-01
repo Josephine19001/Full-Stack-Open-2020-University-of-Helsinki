@@ -11,15 +11,19 @@ const totalLikes = (blogs) => {
 };
 
 const mostBlogs = (blogs) => {
-  if (blogs.length === 0) return {};
   let sumOfBooks = 0;
   let author = "";
+  let freqCounter = {}
 
   for (const key in blogs) {
     if (blogs[key].author) {
-      sumOfBooks = sumOfBooks + 1;
-      author = blogs[key].author;
+      freqCounter[value] = (freqCounter[value] || 0) + 1
     }
+  }
+
+  for (const key in freqCounter) {
+    
+    
   }
 
   return {
